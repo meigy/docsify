@@ -73,6 +73,14 @@ function getListData(token) {
   return token.text;
 }
 
+function getImageData(token) {
+  var reg = /\!\[(\w*)\]\s*\(data:image\/(png|bmp|jpg|gif);base64,\s*[\w\/\+=]*/
+  if (token.text && reg.test(token.text)) {
+    return reg.exec(token.text)[1].trim();
+  }
+  return token.text;
+}
+
 function saveData(maxAge, expireKey, indexKey) {
   localStorage.setItem(expireKey, Date.now() + maxAge);
   localStorage.setItem(indexKey, JSON.stringify(INDEXS));
@@ -108,6 +116,8 @@ export function genIndex(path, content = '', router, depth) {
     } else {
       if (tokenIndex === 0) {
         slug = router.toURL(path);
+        token.text = getImageData(token);
+        token.text = token.text && token.text.length > 512 ? token.text.substring(0, 512) : token.text;        
         index[slug] = {
           slug,
           title: path !== '/' ? path.slice(1) : 'Home Page',
@@ -124,11 +134,15 @@ export function genIndex(path, content = '', router, depth) {
       } else if (index[slug].body) {
         token.text = getTableData(token);
         token.text = getListData(token);
+        token.text = getImageData(token);
+        token.text = token.text && token.text.length > 512 ? token.text.substring(0, 512) : token.text;         
 
         index[slug].body += '\n' + (token.text || '');
       } else {
         token.text = getTableData(token);
         token.text = getListData(token);
+        token.text = getImageData(token);
+        token.text = token.text && token.text.length > 512 ? token.text.substring(0, 512) : token.text;         
 
         index[slug].body = index[slug].body
           ? index[slug].body + token.text
